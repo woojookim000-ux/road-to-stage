@@ -96,7 +96,6 @@ select{background:#1a1338;border:1px solid var(--line);color:var(--ink);border-r
 #cd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--en);font-size:min(30vw,300px);color:#fff;text-shadow:0 0 70px var(--pink),0 0 20px #fff}
 #cd.beat{animation:beat .4s ease-out}
 @keyframes beat{from{transform:scale(1.6);opacity:.2}to{transform:none;opacity:1}}
-#ticker{position:absolute;left:28px;bottom:74px;display:flex;flex-direction:column-reverse;gap:6px;pointer-events:none;transition:opacity .4s}
 .tk{font-weight:900;font-size:20px;padding:6px 14px;border-radius:12px;background:rgba(8,5,22,.72);border-left:4px solid;animation:tkIn .35s ease-out;width:max-content;max-width:60vw}
 @keyframes tkIn{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
 #prog{position:absolute;left:28px;right:28px;bottom:22px;height:38px;pointer-events:none;transition:opacity .4s}
@@ -106,7 +105,7 @@ select{background:#1a1338;border:1px solid var(--line);color:var(--ink);border-r
 .pd.m0,.pd.m1,.pd.m2{width:22px;height:22px;top:8px;margin-left:-11px;z-index:2;border:3px solid}
 .pd.m0{border-color:var(--gold);box-shadow:0 0 14px var(--gold)}
 .pd.m1{border-color:var(--silver)} .pd.m2{border-color:var(--bronze)}
-.cine .hudTop,.cine #board,.cine #ticker,.cine #prog{opacity:0}
+.cine .hudTop,.cine #board,.cine #prog{opacity:0}
 
 /* ---------- result ---------- */
 .resTitle{position:absolute;left:0;right:0;top:5vh;text-align:center;font-family:var(--en);font-size:clamp(36px,5vw,76px);color:#fff;text-shadow:0 0 30px var(--gold);pointer-events:none}
@@ -171,7 +170,7 @@ body.racing #muteBtn{opacity:.25}
   <div class="brand">
     <div class="kicker">BAND MT · LIVE RACE</div>
     <h1>ROAD TO STAGE</h1>
-    <div class="sub">무대까지 달려라! QR 찍고 파트 고르면 내 캐릭터가 알아서 달려요 · 1·2·3등 상품 🎁</div>
+    <div class="sub">무대까지 달려라! QR 찍고 이름·파트 고르면 내 캐릭터가 알아서 달려요 · 개인 순위 1·2·3등 상품 🎁</div>
   </div>
   <div class="qrPanel glass">
     <div id="qr"></div>
@@ -206,7 +205,6 @@ body.racing #muteBtn{opacity:.25}
   <div id="banner"><div class="bTitle"></div><div class="bSub"></div></div>
   <div id="photo">PHOTO FINISH</div>
   <div id="cd"></div>
-  <div id="ticker"></div>
   <div id="prog"><div class="bar"></div><div class="flag">🏁</div></div>
 </div>
 
@@ -214,9 +212,9 @@ body.racing #muteBtn{opacity:.25}
 <div id="resultUI" class="ui" hidden>
   <div class="resTitle">🏆 TODAY'S HEADLINER</div>
   <div class="cards">
-    <div class="rcard r2"><div class="md">🥈</div><div class="nm"></div><div class="pt"></div></div>
-    <div class="rcard r1"><div class="md">🥇</div><div class="nm"></div><div class="pt"></div></div>
-    <div class="rcard r3"><div class="md">🥉</div><div class="nm"></div><div class="pt"></div></div>
+    <div class="rcard r2"><div class="md">🥈</div><div class="nm"></div></div>
+    <div class="rcard r1"><div class="md">🥇</div><div class="nm"></div></div>
+    <div class="rcard r3"><div class="md">🥉</div><div class="nm"></div></div>
   </div>
   <div id="restList"></div>
   <div class="resBtns" id="resBtns" hidden>
@@ -233,7 +231,7 @@ body.racing #muteBtn{opacity:.25}
     <p>이름과 파트를 고르면 큰 화면에 내 캐릭터가 등장해요!</p>
     <input type="text" id="pName" placeholder="이름" maxlength="12" autocomplete="off">
     <div class="parts" id="pParts"></div>
-    <div class="trait" id="pTrait">연주할 악기를 골라주세요</div>
+    <div class="trait" id="pTrait">연주할 파트를 골라주세요</div>
     <button id="pJoinBtn" class="primary">참가하기</button>
     <div class="pstatus" id="pStatus1"></div>
   </div>
@@ -1115,7 +1113,7 @@ async function initHost(){
   /* lobby UI */
   function toast(p){
     const part=partOf(p.part), el=document.createElement('div'); el.className='toast'; el.style.color=part.css;
-    el.textContent=`${part.icon} ${p.name} · ${part.name} 입장!`; $('#joinToast').prepend(el);
+    el.textContent=`${part.icon} ${p.name} 입장!`; $('#joinToast').prepend(el);
     setTimeout(()=>el.remove(),2700); while($('#joinToast').children.length>3) $('#joinToast').lastChild.remove();
   }
   const seenChips=new Set();
@@ -1238,7 +1236,7 @@ async function initHost(){
     World.fx.feverT=0; World.fx.blackT=0; World.fx.beamCol=null;
     World.setLed('ROAD TO STAGE','지금 레이스 진행 중!');
     // HUD
-    const ui=$('#raceUI'); ui.classList.remove('cine'); $('#ticker').textContent=''; $('#board').textContent=''; $('#timer').textContent='0:00.0';
+    const ui=$('#raceUI'); ui.classList.remove('cine'); $('#board').textContent=''; $('#timer').textContent='0:00.0';
     const prog=$('#prog'); prog.querySelectorAll('.pd').forEach(d=>d.remove());
     const dots=ents.map(e=>{ const d=document.createElement('div'); d.className='pd'; d.style.background=partOf(e.part).css; prog.appendChild(d); return d; });
     // count-in (band style 1, 2, 1-2-3-4)
@@ -1249,11 +1247,10 @@ async function initHost(){
     const cd=$('#cd');
     [['1',0,1],['2',0.8,1],['1',1.6,0],['2',2.0,0],['3',2.4,0],['4!',2.8,1],['GO!',3.2,1]].forEach(([t,at,acc2])=>setTimeout(()=>{
       cd.textContent=t; cd.classList.remove('beat'); void cd.offsetWidth; cd.classList.add('beat'); Sound.hit(!!acc2);
-      if(t==='GO!'){ go=true; Sound.play('race'); World.confetti(0,2,0,140,TW); cutTo('chase',4); setTimeout(()=>cd.textContent='',700); ticker('🎶 공연 시작! 무대까지 달려라!','#3de0ff');  }
+      if(t==='GO!'){ go=true; Sound.play('race'); World.confetti(0,2,0,140,TW); cutTo('chase',4); setTimeout(()=>cd.textContent='',700);  }
     },at*1000));
 
-    function banner(title,sub,color){ const b=$('#banner'); b.style.setProperty('--bc',color||'#ff3d8b'); b.querySelector('.bTitle').textContent=title; b.querySelector('.bSub').textContent=sub||''; b.querySelector('.bSub').hidden=!sub; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
-    function ticker(txt,color){ const el=document.createElement('div'); el.className='tk'; el.style.borderLeftColor=color; el.style.color=color; el.textContent=txt; const tk=$('#ticker'); tk.prepend(el); while(tk.children.length>4) tk.lastChild.remove(); }
+    function banner(title,sub,color){ const b=$('#banner'); b.style.setProperty('--bc',color||'#ff3d8b'); b.querySelector('.bTitle').textContent=title; b.querySelector('.bSub').hidden=true; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
     function cutTo(name,dur,target){ shot={name,until:rt+dur,target:target!=null?target:-1,side:Math.random()<0.5?-1:1,snap:true}; }
     const wx=p=>Math.min(p,TRACK+1)*SC;
     const nm=i=>ents[i].name;
@@ -1316,12 +1313,12 @@ async function initHost(){
         World.drawLabel(r,liveRank[i],fin(i));
       }
       // events
-      while(sim.personalQ.length){ const e=sim.personalQ.shift(); ticker(`${e.e} ${nm(e.i)} · ${e.txt}`,e.good?'#5dff9e':'#ff6b7a');
+      while(sim.personalQ.length){ const e=sim.personalQ.shift();
         World.popIcon(ents[e.i].id,e.e); World.eventFx(ents[e.i].id,e.fx,e.good);
         if(liveRank[e.i]<6) (e.good?Sound.whoosh:Sound.zap)(); }
       while(sim.globalQ.length) triggerGlobal(sim.globalQ.shift());
       const L=order[0];
-      if(L!==lastLeader&&ts>3&&ts-leadT>2.5&&!fin(L)){ if(lastLeader>=0){ ticker(`🏁 선두 교체! ${nm(L)}`,'#ffcc33'); } lastLeader=L; leadT=ts; }
+      if(L!==lastLeader&&ts>3&&ts-leadT>2.5&&!fin(L)){ if(lastLeader>=0){ } lastLeader=L; leadT=ts; }
       const lp=P[L]/TRACK;
       if(!spurt&&lp>0.8){ spurt=true; banner('🔥 마지막 스퍼트!','락페 무대가 코앞! 소리 질러!!','#ff3d8b'); Sound.intensity(2); World.fx.feverT=Math.max(World.fx.feverT,0.6); World.pyro(true); World.firework(); World.firework(); cutTo('stage',3.2); }
       // photo finish slow-mo
@@ -1338,8 +1335,7 @@ async function initHost(){
         order.slice(0,5).forEach((i,k)=>{ const row=document.createElement('div'); row.className='row r'+k+(prevRank[i]>k?' up':'');
           const rk=document.createElement('span'); rk.className='rk'; rk.textContent=k<3?MEDAL[k]:k+1;
           const nmEl=document.createElement('span'); nmEl.className='nm'; nmEl.textContent=nm(i);
-          const pt=document.createElement('span'); pt.className='pt'; pt.style.background=partOf(ents[i].part).css; pt.textContent=partOf(ents[i].part).name;
-          row.append(rk,nmEl,pt); b.appendChild(row); });
+          row.append(rk,nmEl); b.appendChild(row); });
         for(let i=0;i<n;i++) prevRank[i]=liveRank[i];
         for(let i=0;i<n;i++){ const d=dots[i]; d.style.left=(Math.min(1,P[i]/TRACK)*100)+'%'; d.className='pd'+(liveRank[i]<3?' m'+liveRank[i]:''); }
         World.setLed(`${MEDAL[0]} ${nm(L)}`,`현재 선두 · ${partOf(ents[L].part).name}`);
@@ -1368,7 +1364,7 @@ async function initHost(){
     Sound.play('lobby');
     document.querySelectorAll('.rcard').forEach(c=>c.classList.remove('show'));
     const cls=['r1','r2','r3'];
-    top.forEach((p,k)=>{ const c=$('.rcard.'+cls[k]); c.querySelector('.nm').textContent=p.name; c.querySelector('.pt').textContent=`${partOf(p.part).icon} ${partOf(p.part).name}`; c.querySelector('.pt').style.color=partOf(p.part).css; c.style.visibility='visible'; });
+    top.forEach((p,k)=>{ const c=$('.rcard.'+cls[k]); c.querySelector('.nm').textContent=p.name; c.style.visibility='visible'; });
     for(let k=top.length;k<3;k++) $('.rcard.'+cls[k]).style.visibility='hidden';
     const rest=$('#restList'); rest.textContent='';
     rank.slice(3,16).forEach((p,k)=>{ const b=document.createElement('b'); b.textContent=`${k+4}. `; rest.append(b,`${p.name}   `); });
@@ -1408,13 +1404,13 @@ function initPlayer(hostId){
     const ic=document.createElement('span'); ic.className='ic'; ic.textContent=pt.icon; const nm=document.createElement('span'); nm.textContent=pt.name; b.append(ic,nm);
     b.onclick=()=>{ myPart=k; selPart(); }; pp.appendChild(b); });
   function selPart(){ pp.querySelectorAll('.partBtn').forEach(b=>b.classList.toggle('sel',b.dataset.k===myPart));
-    const t=$('#pTrait'); if(PARTS[myPart]){ t.style.setProperty('--pc',PARTS[myPart].css); t.innerHTML=''; const b=document.createElement('b'); b.textContent=PARTS[myPart].name; t.append(b,' (으)로 무대에 올라가요!'); } }
+    const t=$('#pTrait'); if(PARTS[myPart]){ t.style.setProperty('--pc',PARTS[myPart].css); t.innerHTML=''; const b=document.createElement('b'); b.textContent=PARTS[myPart].name; t.append(b,' 파트로 무대에 올라가요!'); } }
   $('#pName').value=myName; selPart();
 
   $('#pJoinBtn').onclick=()=>{
     const n=$('#pName').value.replace(/\s+/g,' ').trim().slice(0,12);
     if(!n){ $('#pName').focus(); return; }
-    if(!PARTS[myPart]){ $('#pTrait').textContent='👆 악기를 먼저 골라주세요!'; return; }
+    if(!PARTS[myPart]){ $('#pTrait').textContent='👆 파트를 먼저 골라주세요!'; return; }
     myName=n; store.set('bmt_myName',n); store.set('bmt_myPart',myPart); kicked=false;
     paint(); view('pWait'); status('연결 중…'); wantConn=true;
     if(conn&&conn.open) conn.send({type:'join',id:myId,name:myName,part:myPart}); else start();
