@@ -106,6 +106,31 @@ select{background:#1a1338;border:1px solid var(--line);color:var(--ink);border-r
 .pd.m0{border-color:var(--gold);box-shadow:0 0 14px var(--gold)}
 .pd.m1{border-color:var(--silver)} .pd.m2{border-color:var(--bronze)}
 .cine .hudTop,.cine #board,.cine #prog{opacity:0}
+body.photo #gl{filter:grayscale(1) contrast(1.2)}
+body.photo #photo,body.photo #banner{opacity:0!important}
+#shutter{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:5}
+#shutter.on{animation:shut .7s ease-out}
+@keyframes shut{0%{opacity:1}100%{opacity:0}}
+#photoCard{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1100px,90vw);padding:18px 24px 22px;border-radius:20px;background:rgba(8,6,18,.92);border:2px solid var(--gold);box-shadow:0 0 50px rgba(255,204,51,.45);z-index:4;opacity:0;pointer-events:none;transition:opacity .25s}
+body.photo #photoCard{opacity:1}
+#photoCard .h{font-family:var(--en);letter-spacing:5px;color:var(--gold);font-size:clamp(20px,2.2vw,30px);text-align:center;margin-bottom:12px}
+.pr{display:grid;grid-template-columns:minmax(180px,28%) 1fr;align-items:center;gap:14px;margin-top:10px;opacity:0;animation:prIn .4s ease-out forwards}
+.pr:nth-child(2){animation-delay:.35s}.pr:nth-child(3){animation-delay:.7s}
+@keyframes prIn{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}
+.pl{display:flex;flex-direction:column;line-height:1.15}
+.pm{font-size:26px}
+.pn{font-family:var(--kr);font-size:clamp(26px,2.8vw,42px);color:#fff}
+.pr:first-child .pn{color:var(--gold)}
+.pg{font-weight:900;font-size:clamp(14px,1.3vw,19px);color:#ffd77a}
+.plane{position:relative;height:clamp(58px,8vh,84px);border-radius:10px;overflow:hidden;background:repeating-linear-gradient(90deg,#24203a 0 2px,#17142b 2px 60px);border:1px solid rgba(255,255,255,.12)}
+.pfin{position:absolute;top:0;bottom:0;left:82%;width:22px;background:repeating-conic-gradient(#fff 0 25%,#111 0 50%) 0 0/11px 11px}
+.pfin::after{content:"";position:absolute;top:0;bottom:0;left:-2px;width:3px;background:#ff2840;box-shadow:0 0 10px #ff2840}
+.prun{position:absolute;top:50%;transform:translate(-100%,-50%);display:flex;align-items:center}
+.prun b{font-size:clamp(40px,5.5vh,60px);display:inline-block;transform:scaleX(-1);filter:drop-shadow(0 0 10px var(--pc))}
+.prun::before{content:"";position:absolute;right:6px;top:50%;width:400px;height:6px;margin-top:-3px;transform:translateX(-30px);background:linear-gradient(90deg,transparent,var(--pc));opacity:.6;z-index:-1}
+#photoCard .h{font-family:var(--en);letter-spacing:4px;color:var(--gold);font-size:22px}
+#photoCard .r{font-family:var(--kr);font-size:clamp(22px,2.6vw,40px);line-height:1.35;margin-top:4px}
+#photoCard .r small{display:block;font-family:"Noto Sans KR";font-weight:900;font-size:.5em;color:#ffd77a}
 
 /* ---------- result ---------- */
 .resTitle{position:absolute;left:0;right:0;top:5vh;text-align:center;font-family:var(--en);font-size:clamp(36px,5vw,76px);color:#fff;text-shadow:0 0 30px var(--gold);pointer-events:none}
@@ -163,6 +188,7 @@ body.racing #muteBtn{opacity:.25}
 </head>
 <body>
 <div id="gl"></div>
+<div id="shutter"></div>
 <div id="loading" hidden>LOADING STAGE…</div>
 
 <!-- ================= HOST: lobby ================= -->
@@ -204,6 +230,7 @@ body.racing #muteBtn{opacity:.25}
   <div id="board" class="glass"></div>
   <div id="banner"><div class="bTitle"></div><div class="bSub"></div></div>
   <div id="photo">PHOTO FINISH</div>
+  <div id="photoCard"><div class="h">📸 PHOTO FINISH</div><div id="photoRows"></div></div>
   <div id="cd"></div>
   <div id="prog"><div class="bar"></div><div class="flag">🏁</div></div>
 </div>
@@ -359,6 +386,7 @@ const Sound=(()=>{
     zap(){ if(!ctx) return; const t=ctx.currentTime; synth(t,1400,0.35,'square',0.06,4000); synth(t+0.08,700,0.4,'sawtooth',0.06,3000); },
     ding(r){ if(!ctx) return; const t=ctx.currentTime; const f=r===0?[1046.5,1318.5,1568]:r===1?[880,1108.7]:[783.99,987.77]; f.forEach((x,k)=>synth(t+k*0.07,x,0.9,'triangle',0.12,5000)); },
     fanfare(){ if(!ctx) return; const t=ctx.currentTime; [[523.25,0],[659.25,.12],[783.99,.24],[1046.5,.36],[783.99,.6],[1046.5,.72]].forEach(([f,d])=>synth(t+d,f,d>0.5?1.6:0.3,'sawtooth',0.07,3000)); crash(t+0.36); },
+    shutter(){ if(!ctx) return; const t=ctx.currentTime; noise(t,0.05,'highpass',3000,0,0,0.9); noise(t+0.09,0.06,'highpass',2500,0,0,0.7); },
     pop(){ if(!ctx) return; const t=ctx.currentTime; kick(t,0.35); noise(t,0.9,'lowpass',3000,200,0,0.45); },
     cheer(){ if(!ctx) return; const t=ctx.currentTime; for(let k=0;k<6;k++) noise(t+k*0.12,1.4,'bandpass',900+Math.random()*1400,0,0.7,0.2); },
   };
@@ -997,9 +1025,10 @@ const World=(()=>{
       emit(sh.x,sh.y,sh.z,{count:1,speed:0.5,up:0,colors:[0xffe2a0],life:0.35,size:0.18,grav:0});
       if(sh.t>sh.fuse){ emit(sh.x,sh.y,sh.z,{count:160,speed:15,sphere:true,colors:[sh.col,0xffffff,sh.col],life:1.8,size:0.3,grav:4}); shells.splice(k,1); if(fireSound) fireSound(); } }
     iconPool.forEach(c=>{ if(c.life<=0) return; c.life-=dt; const a=1.6-c.life, sc=a<0.2?a/0.2*1.8:1.8-Math.min(0.4,(a-0.2)); c.s.scale.set(sc,sc,1); c.s.position.set(c.r.root.position.x,c.r.root.position.y+3.3+a*0.6,c.r.root.position.z); c.s.material.opacity=Math.min(1,c.life*2); if(c.life<=0) c.s.visible=false; });
-    if(bloom) bloom.strength=0.85+fx.fever*0.35+beat*0.1+fx.flash*0.5;
-    for(const r of runners.values()) animRunner(r,dt);
-    updateCrowd(time); updateParticles(dt);
+    if(bloom) bloom.strength=fx.freeze?0.25:0.85+fx.fever*0.35+beat*0.1+fx.flash*0.5;
+    const vis=!fx.freeze; arches.forEach(a=>a.visible=vis); beams.forEach(b=>b.g.visible=vis); lasers.forEach(l=>l.m.visible=vis);
+    if(!fx.freeze){ for(const r of runners.values()) animRunner(r,dt); updateCrowd(time); updateParticles(dt); }
+    else { for(const r of runners.values()) r.root.position.set(r.x,r.y+r.lift,r.z); }
     cheerPool.forEach(c=>{ if(c.life<=0) return; c.life-=dt; c.s.position.y+=dt*2.2; c.s.position.x+=c.vx*dt; c.s.material.opacity=Math.min(1,c.life*1.5); if(c.life<=0) c.s.visible=false; });
     portalPool.forEach(p=>{ if(p.life<=0) return; p.life-=dt*0.9; p.m.scale.setScalar(1+(1-p.life)*2.5); p.m.rotation.x+=dt*8; p.m.material.opacity=p.life; if(p.life<=0) p.m.visible=false; });
     if(shock.userData.life>0){ shock.userData.life-=dt*1.2; const s=1+(1-shock.userData.life)*30; shock.scale.set(s,s,s); shock.material.opacity=Math.max(0,shock.userData.life); if(shock.userData.life<=0) shock.visible=false; }
@@ -1009,7 +1038,7 @@ const World=(()=>{
     camera.position.copy(cam.pos);
     if(cam.shake>0.01){ camera.position.x+=(Math.random()-0.5)*cam.shake; camera.position.y+=(Math.random()-0.5)*cam.shake; camera.position.z+=(Math.random()-0.5)*cam.shake; cam.shake*=Math.exp(-dt*3.5); }
     camera.lookAt(cam.look);
-    const tf=cam.tFov+fx.fever*6; if(Math.abs(camera.fov-tf)>0.05){ camera.fov+=(tf-camera.fov)*Math.min(1,dt*3); camera.updateProjectionMatrix(); }
+    const tf=cam.tFov+(fx.freeze?0:fx.fever*6); if(cam.fovSnap){ cam.fovSnap=false; camera.fov=tf; camera.updateProjectionMatrix(); } else if(Math.abs(camera.fov-tf)>0.05){ camera.fov+=(tf-camera.fov)*Math.min(1,dt*3); camera.updateProjectionMatrix(); }
     if(composer&&bloomOn) composer.render(); else renderer.render(scene,camera);
     // adaptive quality
     fpsAcc+=dt; fpsN++;
@@ -1018,7 +1047,7 @@ const World=(()=>{
       else if(fps<26&&quality===1){ quality=0; bloomOn=false; } }
   }
 
-  function setCam(pos,look,{snap=false,fov=55,smooth=3}={}){ cam.tPos.set(...pos); cam.tLook.set(...look); cam.tFov=fov; cam.smooth=smooth; if(snap) cam.snap=true; }
+  function setCam(pos,look,{snap=false,fov=55,smooth=3}={}){ cam.tPos.set(...pos); cam.tLook.set(...look); cam.tFov=fov; cam.smooth=smooth; if(snap){ cam.snap=true; cam.fovSnap=true; } }
 
   return {
     init,update,setRoster,lobbyPose,setCam,emit,burst,confetti,explosion,portal,cheer,pyro,setLed,drawLabel,firework,popIcon,eventFx,
@@ -1226,7 +1255,7 @@ async function initHost(){
     const n=ents.length, TRACK=Math.round(duration*0.62), sim=createSim(ents.map(e=>e.part),TRACK), R=ents.map(e=>World.runner(e.id));
     const scale=(duration*0.85)/(TRACK/1.04);           // 실제 초 / 시뮬레이션 초
     const TW=World.TW, SC=World.FIN/TRACK;
-    let ts=0, acc=0, rt=0, go=false, ended=false, slow=false, finalCam=false, lastLeader=-1, leadT=-9, uiT=0, liveT=0, spurt=false;
+    let ts=0, acc=0, rt=0, go=false, ended=false, slow=false, pf={state:'none',t:0,ids:[]}, finalCam=false, lastLeader=-1, leadT=-9, uiT=0, liveT=0, spurt=false;
     let shot={name:'chase',until:0,target:-1,side:1}, shotK=0;
     const SHOTS=[['chase',5],['side',4],['front',3.2],['drone',4],['low',3.6],['chase',4],['front',3],['side',3.6]];
     const announced=new Set(), prevRank=new Int16Array(n).fill(99), liveRank=new Int16Array(n).fill(0);
@@ -1276,7 +1305,7 @@ async function initHost(){
       let px=0,pz=0; const k=Math.min(6,n); for(let j=0;j<k;j++){ px+=wx(P[order[j]]); pz+=lanes[order[j]]; } px/=k; pz/=k;
       const lp=P[L]/TRACK;
       if(lp>0.9&&!finalCam){ finalCam=true; shot={name:'finish',until:1e9,snap:true}; }
-      if(!finalCam&&rt>shot.until){ const s=SHOTS[shotK++%SHOTS.length]; cutTo(s[0],s[1]); }
+      if(!finalCam&&rt>shot.until&&pf.state==='none'){ const s=SHOTS[shotK++%SHOTS.length]; cutTo(s[0],s[1]); }
       const snap=!!shot.snap; shot.snap=false;
       const o={snap,smooth:snap?3:3.2,fov:55}, cz=v=>clamp(v,-(TW/2-2),TW/2-2);
       switch(shot.name){
@@ -1287,6 +1316,7 @@ async function initHost(){
         case 'drone': World.setCam([px-20,22,pz*0.3],[px+8,0,pz*0.3],{...o,fov:58}); break;
         case 'focus': { const i=shot.target>=0?shot.target:L; const rx=R[i].x, rz=R[i].z; World.setCam([rx+6,3.2,cz(rz+(rz>0?-6:6))],[rx,1.3+R[i].lift,rz],{...o,fov:52,smooth:5}); break; }
         case 'stage': World.setCam([World.FIN-34,7,0],[World.STAGE_X,11,0],{...o,fov:60,smooth:0.8}); break;
+        case 'photoApproach': { const zc=pf.zc; World.setCam([World.FIN+4,1.5,cz(zc+pf.side*6)],[World.FIN-2,1.1,zc],{...o,fov:46,smooth:3}); break; }
         case 'finish': World.setCam([World.FIN+5,2.6,pz*0.3],[World.FIN-18,1.1,pz*0.5],{...o,fov:slow?44:54,smooth:2}); break;
       }
     }
@@ -1294,7 +1324,7 @@ async function initHost(){
     return {
       update(dt){
       if(!go||ended){ R.forEach(r=>{ r.anim=go?r.anim:'dance'; }); return; }
-      const rate=slow?0.28:1;
+      const rate=pf.state==='freeze'?0:slow?0.25:1;
       rt+=dt; acc+=dt*rate/scale;
       let steps=0; while(acc>=sim.dt&&steps<30&&!sim.ended){ sim.step(); acc-=sim.dt; steps++; }
       ts=sim.t; const al=clamp(acc/sim.dt,0,1);
@@ -1316,15 +1346,50 @@ async function initHost(){
       while(sim.personalQ.length){ const e=sim.personalQ.shift();
         World.popIcon(ents[e.i].id,e.e); World.eventFx(ents[e.i].id,e.fx,e.good);
         if(liveRank[e.i]<6) (e.good?Sound.whoosh:Sound.zap)(); }
-      while(sim.globalQ.length) triggerGlobal(sim.globalQ.shift());
+      while(sim.globalQ.length){ const g=sim.globalQ.shift(); if(pf.state==='none') triggerGlobal(g); }
       const L=order[0];
       if(L!==lastLeader&&ts>3&&ts-leadT>2.5&&!fin(L)){ if(lastLeader>=0){ } lastLeader=L; leadT=ts; }
       const lp=P[L]/TRACK;
       if(!spurt&&lp>0.8){ spurt=true; banner('🔥 마지막 스퍼트!','락페 무대가 코앞! 소리 질러!!','#ff3d8b'); Sound.intensity(2); World.fx.feverT=Math.max(World.fx.feverT,0.6); World.pyro(true); World.firework(); World.firework(); cutTo('stage',3.2); }
       // photo finish slow-mo
-      const wantSlow=lp>0.955&&sim.done.length<sim.need;
-      if(wantSlow!==slow){ slow=wantSlow; ui.classList.toggle('cine',slow); Sound.filter(slow?650:18000,slow?0.1:0.4); if(slow){ Sound.riser(2); } }
-      sim.done.slice(0,3).forEach((i,r)=>{ if(!announced.has(i)){ announced.add(i); banner(`${MEDAL[r]} ${nm(i)}`,`${r+1}등 무대 도착!`,['#ffcc33','#dfe5f2','#f0985f'][r]); Sound.ding(r);
+      // 1) 접전일 때만: 선두가 결승선 바로 앞(약 1초)이고 2등이 바짝 붙어 있으면 슬로모션 시작
+      if(pf.state==='none'&&!sim.done.length&&n>=2){
+        const d=TRACK-P[L], O=order[1], g=P[L]-P[O];
+        if(d<0.5&&g<0.5){
+          pf.state='approach'; pf.ids=order.slice(0,3).filter(i=>P[L]-P[i]<0.7);
+          const zs=pf.ids.map(i=>lanes[i]); pf.zc=(Math.min(...zs)+Math.max(...zs))/2; pf.side=pf.zc>0?-1:1;
+          slow=true; ui.classList.add('cine'); Sound.filter(650,0.1); Sound.riser(1.6);
+          finalCam=true; shot={name:'photoApproach',until:1e9,snap:true};
+        }
+      }
+      // 2) 1등이 결승선에 닿는 순간 화면 정지(흑백) + 판독 스트립: 각 선수가 결승선에서 얼마나 떨어졌는지 정확한 비율로 표시
+      if(pf.state==='approach'&&sim.done.length){
+        pf.state='freeze'; pf.t=0; World.fx.freeze=1;
+        const w=sim.done[0];
+        const a=clamp((sim.finish[w]-(sim.t-sim.dt))/sim.dt,0,1); acc=a*sim.dt;
+        for(let i=0;i<n;i++){ P[i]=sim.prev[i]+(sim.pos[i]-sim.prev[i])*a; R[i].x=wx(P[i]); }
+        const others=[...Array(n).keys()].filter(i=>i!==w).sort((x,y)=>P[y]-P[x]).slice(0,2);
+        const ids=[w,...others], gaps=ids.map(i=>Math.max(0,P[w]-P[i]));
+        const maxGap=Math.max(0.05,...gaps), K=Math.min(140,62/maxGap);   // % per sim unit, 제일 뒤 선수가 스트립 안에 들어오게
+        const rows=$('#photoRows'); rows.textContent='';
+        ids.forEach((i,k)=>{
+          const row=document.createElement('div'); row.className='pr';
+          const lab=document.createElement('div'); lab.className='pl';
+          const md=document.createElement('span'); md.className='pm'; md.textContent=MEDAL[k];
+          const nmEl=document.createElement('span'); nmEl.className='pn'; nmEl.textContent=nm(i);
+          lab.append(md,nmEl);
+          if(k){ const sec=gaps[k]/Math.max(0.3,V[i])*scale; const g=document.createElement('span'); g.className='pg'; g.textContent=sec<0.1?`간발의 차 +${sec.toFixed(2)}초`:`+${sec.toFixed(2)}초`; lab.appendChild(g); }
+          const lane=document.createElement('div'); lane.className='plane';
+          const fl=document.createElement('i'); fl.className='pfin'; lane.appendChild(fl);
+          const run=document.createElement('div'); run.className='prun'; run.style.left=(82-gaps[k]*K)+'%'; run.style.setProperty('--pc',partOf(ents[i].part).css);
+          run.innerHTML='<b>🏃</b>'; lane.appendChild(run);
+          row.append(lab,lane); rows.appendChild(row);
+        });
+        $('#shutter').classList.remove('on'); void $('#shutter').offsetWidth; $('#shutter').classList.add('on'); Sound.shutter();
+        document.body.classList.add('photo');
+      }
+      if(pf.state==='freeze'){ pf.t+=dt; if(pf.t>5){ pf.state='done'; World.fx.freeze=0; document.body.classList.remove('photo'); slow=false; ui.classList.remove('cine'); Sound.filter(18000,0.4); shot={name:'finish',until:1e9,snap:true}; } }
+      sim.done.slice(0,3).forEach((i,r)=>{ if(pf.state==='freeze') return; if(!announced.has(i)){ announced.add(i); banner(`${MEDAL[r]} ${nm(i)}`,`${r+1}등 무대 도착!`,['#ffcc33','#dfe5f2','#f0985f'][r]); Sound.ding(r);
         World.confetti(World.FIN,3,lanes[i],120,6); World.pyro(true); if(r===0){ World.fx.flash=1; Sound.cheer(); for(let k=0;k<4;k++) setTimeout(()=>World.firework(),k*250); } } });
       director(order);
       // HUD
@@ -1346,7 +1411,7 @@ async function initHost(){
           const i=ents.findIndex(e=>e.id===p.id);
           let ev=''; if(i>=0) for(const e of sim.tl[i]) if(ts>=e.t0&&ts<e.t1) ev=e.txt||'';
           send(p,{type:'live',rank:i>=0?liveRank[i]+1:0,total:n,ev,fin:i>=0&&fin(i)}); } }
-      if(sim.ended){ ended=true; ui.classList.remove('cine'); Sound.filter(18000); Sound.intensity(1); const rk=sim.ranking(); setTimeout(()=>onDone(rk),1200); }
+      if(sim.ended&&pf.state!=='freeze'){ ended=true; ui.classList.remove('cine'); document.body.classList.remove('photo'); World.fx.freeze=0; Sound.filter(18000); Sound.intensity(1); const rk=sim.ranking(); setTimeout(()=>onDone(rk),1200); }
     } };
   }
 
